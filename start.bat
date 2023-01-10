@@ -1,0 +1,2 @@
+start cmd.exe /k "cd c:\Archivo de programa\MongoDB\Server\6.0\bin && mongod.exe --dbpath c:\data5\db"
+start cmd.exe /k "cd d:\DevsLocal\Portafolio\node\Node Victor Robles\Primeros Pasos\AppConsola\red social && npm start"
