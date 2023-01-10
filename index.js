@@ -30,9 +30,9 @@ const UserRoutes = require("./routes/user.routes");
 const FollowRoutes = require("./routes/follow.routes");
 const PublicationRoutes = require("./routes/publication.routes");
 
-app.use("/api", UserRoutes);
-app.use("/api", FollowRoutes);
-app.use("/api", PublicationRoutes);
+app.use("/api/user", UserRoutes);
+app.use("/api/follow", FollowRoutes);
+app.use("/api/publication", PublicationRoutes);
 //poner server a escuchar
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
