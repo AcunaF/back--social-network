@@ -10,7 +10,7 @@ connection = async () => {
     console.log("Connected to BDD : red-social");
   } catch (e) {
     console.log(error);
-    throw new Error("no se pudo conectar a la BDD");
+    throw new Error("could not connect to the BDD");
   }
 };
 

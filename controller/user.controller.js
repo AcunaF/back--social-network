@@ -1,6 +1,8 @@
 //dependencias y modulos
-
+const bcrypt = require("bcrypt");
 const User = require("../models/user.models");
+const jwt = require("../token/jwt.token"); //%conseguir token//jwt.token.js
+
 //testing
 const userTesting = (req, res) => {
   return res.status(200).json({
@@ -22,45 +24,96 @@ const register = (req, res) => {
   ) {
     return res.status(400).json({
       status: "error",
-      message: "faltan datos",
+      message: "missing data",
     });
   }
-  //2.1- crear objeto del usuario validado
-  let userValid = new User(userParams);
+
   //3- controlar que el usuario exista o este duplicado
   User.find({
     $or: [
-      { email: userValid.email.toLowerCase() },
-      { nick: userValid.email.toLowerCase() },
+      { email: userParams.email.toLowerCase() },
+      { nick: userParams.nick.toLowerCase() },
     ],
-  }).exec((error, users) => {
+  }).exec(async (error, users) => {
     if (error)
       return res.status(500).json({
         status: "error",
-        message: "error en la consulta de usuarios",
+        message: "data query error",
       });
 
     if (users && users.length >= 1) {
       //esto significa que ya existe un usuario (users.length >=1)
-      return res.status(200).send({
-        status: "succes",
-        message: "el usuario existe",
+      return res.status(500).send({
+        status: "ERROR",
+        message: "the user exists",
       });
     }
     //4- contraseña
+    let pwd = await bcrypt.hash(userParams.password, 10);
+    userParams.password = pwd;
+    //2.1- crear objeto del usuario validado
+    let userValid = new User(userParams);
     //5- guardar usuario en BDD
-    //6- respuesta
-  });
-
-  return res.status(200).json({
-    status: "succes",
-    message: "metodo register ok",
-    userValid,
+    userValid.save((error, userStored) => {
+      if (error || !userStored)
+        return res.status(500).send({
+          status: "error",
+          message: "error saving user",
+        });
+      //6- respuesta
+      return res.status(200).json({
+        status: "succes",
+        message: "successfully registered user",
+        userStored,
+      });
+    });
   });
 };
+const login = (req, res) => {
+  //recoger parametros del body
+  let params = req.body;
+  if (!params.email || !params.password) {
+    return res.status(400).send({
+      status: "error",
+      message: " missing data to send ",
+    });
+  }
+  //buscar en la BDD si existe
+  User.findOne({ email: params.email })
+    //.select({ password: 0 })
+    .exec((error, userbd) => {
+      if (error || !userbd)
+        return res.status(404).send({
+          status: "error",
+          message: "Username does not exist",
+        });
+      //comprobar contraseña
+      const pwd = bcrypt.compareSync(params.password, userbd.password);
 
+      if (!pwd) {
+        return res.status(400).send({
+          message: "you have not correctly identified",
+        });
+      }
+      //conseguir token//jwt.token.js
+      const token = jwt.createToken(User);
+
+      //devolver datos del usuario
+      return res.status(200).json({
+        status: "succes",
+        message: "successfully login user",
+        userbd: {
+          id: userbd._id,
+          name: userbd.name,
+          email: userbd.email,
+        },
+        token,
+      });
+    });
+};
 //exportar
 module.exports = {
   userTesting,
   register,
+  login,
 };
