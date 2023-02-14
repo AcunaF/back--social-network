@@ -6,7 +6,8 @@ const jwt = require("../token/jwt.token"); //%conseguir token//jwt.token.js
 //testing
 const userTesting = (req, res) => {
   return res.status(200).json({
-    message: "message sent from user.controllers.js",
+    message: "message send from user.controllers.js",
+    usuario: req.user,
   });
 };
 
@@ -95,6 +96,7 @@ const login = (req, res) => {
           message: "you have not correctly identified",
         });
       }
+
       //conseguir token//jwt.token.js
       const token = jwt.createToken(User);
 
@@ -111,9 +113,31 @@ const login = (req, res) => {
       });
     });
 };
+
+const profile = (req, res) => {
+  //recibir parametros del id del usuario por url
+  const id = req.params.id;
+  //consulta para sacar los datos del usuario
+  User.findById(id, (error, userProfile) => {
+    if (error || !userProfile)
+      return res.status(404).json({
+        status: "error",
+        message: "user no exist",
+      });
+
+    //devolver datos
+    return res.status(200).json({
+      status: "succes",
+      message: "successfully getting user data",
+      userProfile,
+    });
+  });
+};
+
 //exportar
 module.exports = {
   userTesting,
   register,
   login,
+  profile,
 };
